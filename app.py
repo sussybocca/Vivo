@@ -33,8 +33,16 @@ html_content = """
             <textarea name="prompt" placeholder="Type your command here..."></textarea><br>
             <input type="file" name="file"><br>
             <select name="model_choice">
-                <option value="text">Ling-1T (Text)</option>
-                <option value="image">DeepSeek-R1 (Image)</option>
+                <option value="inclusionAI/Ling-1T">Ling-1T (Text)</option>
+                <option value="deepseek-ai/DeepSeek-R1">DeepSeek-R1 (Image)</option>
+                <option value="microsoft/UserLM-8b">UserLM-8b</option>
+                <option value="zai-org/GLM-4.6">GLM-4.6</option>
+                <option value="LiquidAI/LFM2-8B-A1B">LFM2-8B-A1B</option>
+                <option value="Qwen/Qwen3-8B">Qwen3-8B</option>
+                <option value="google/flan-t5-large">Flan-T5-Large</option>
+                <option value="Phr00t/Qwen-Image-Edit-Rapid-AIO">Qwen-Image-Edit-Rapid-AIO</option>
+                <option value="tencent/HunyuanImage-3.0">HunyuanImage-3.0</option>
+                <option value="black-forest-labs/FLUX.1-dev">FLUX.1-dev</option>
             </select><br>
             <button type="submit">Send</button>
         </form>
@@ -65,23 +73,12 @@ async def process(
     file: UploadFile | None = File(None),
     model_choice: str = Form(...)
 ):
-    # Select model
-    if model_choice == "text":
-        model_name = "inclusionAI/Ling-1T:featherless-ai"
-    elif model_choice == "image":
-        model_name = "deepseek-ai/DeepSeek-R1"
-    else:
-        return {"error": "Invalid model choice"}
-
-    # Read image if uploaded
-    image_bytes = await file.read() if file else None
-
     # Call Hugging Face API
     try:
         response = client.chat.completions.create(
-            model=model_name,
+            model=model_choice,
             messages=[{"role": "user", "content": prompt}],
-            # For image model, you may need additional parameters
+            # For image models, you may need additional parameters
         )
     except Exception as e:
         return {"error": str(e)}
