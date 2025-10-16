@@ -1,17 +1,18 @@
 import os
 from fastapi import FastAPI, Form, UploadFile, File
 from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
 from openai import OpenAI
+import uvicorn
 
 app = FastAPI()
 
+# Initialize OpenAI client (Hugging Face API)
 client = OpenAI(
     base_url="https://router.huggingface.co/v1",
-    api_key=os.environ["HF_TOKEN"],
+    api_key=os.environ.get("HF_TOKEN"),
 )
 
-# Terminal-style interface HTML (single-page)
+# Terminal-style HTML interface
 html_content = """
 <!DOCTYPE html>
 <html>
@@ -75,10 +76,18 @@ async def process(
     # Read image if uploaded
     image_bytes = await file.read() if file else None
 
-    # Call Hugging Face API (basic text completion example)
-    response = client.chat.completions.create(
-        model=model_name,
-        messages=[{"role": "user", "content": prompt}],
-        # For image model, might need specific input format
-    )
+    # Call Hugging Face API
+    try:
+        response = client.chat.completions.create(
+            model=model_name,
+            messages=[{"role": "user", "content": prompt}],
+            # For image model, you may need additional parameters
+        )
+    except Exception as e:
+        return {"error": str(e)}
+
     return {"result": response}
+
+# Run the app on fixed port 8080 for Railway free tier
+if __name__ == "__main__":
+    uvicorn.run("app:app", host="0.0.0.0", port=8080)
